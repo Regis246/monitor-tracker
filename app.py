@@ -28,7 +28,7 @@ def cargar_datos():
         
         # LÓGICA INTELIGENTE DE CREDENCIALES
         # 1. Intenta buscar en la "Caja Fuerte" de la nube (Streamlit Secrets)
-        if "google_credentials" in st.secrets:
+          if "google_credentials" in st.secrets:
     # Al usar formato nativo, st.secrets ya nos da el diccionario listo.
     # No hace falta usar json.loads
     key_dict = dict(st.secrets["google_credentials"])
@@ -187,4 +187,5 @@ else:
         if st.button("⚡ Generar Reclamo de Recursos"):
             reporte = generar_asistente(criticos, col_estado, col_estado_recursos, col_recurso_principal)
             st.text_area("Copia este texto:", reporte, height=200)
+
 
