@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 import gspread
-import random
 import time
+import json # <--- Nuevo ingrediente
 from google.oauth2.service_account import Credentials
 
 # --- CONFIGURACIÓN DE PÁGINA ---
@@ -20,15 +20,24 @@ st.markdown("""
 st.title("🚀 Tablero de Control: Misión Educativa")
 st.markdown("---")
 
-# --- CONEXIÓN A GOOGLE SHEETS ---
+# --- CONEXIÓN HÍBRIDA (NUBE / LOCAL) ---
 @st.cache_data
 def cargar_datos():
     try:
         scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-        creds = Credentials.from_service_account_file("credenciales.json", scopes=scope)
+        
+        # LÓGICA INTELIGENTE DE CREDENCIALES
+        # 1. Intenta buscar en la "Caja Fuerte" de la nube (Streamlit Secrets)
+        if "google_credentials" in st.secrets:
+            key_dict = json.loads(st.secrets["google_credentials"])
+            creds = Credentials.from_service_account_info(key_dict, scopes=scope)
+        # 2. Si no, busca el archivo en tu compu (para cuando trabajás local)
+        else:
+            creds = Credentials.from_service_account_file("credenciales.json", scopes=scope)
+            
         client = gspread.authorize(creds)
         
-        # --- ¡PEGÁ TU ID AQUÍ ABAJO! ---
+        # --- ¡PEGÁ TU ID DE GOOGLE SHEETS AQUÍ ABAJO! ---
         spreadsheet_id = "1nfXLWBLfjIXznMIjlojpaAKD3bTRrThEvkjihCjwbUk" 
         
         sheet = client.open_by_key(spreadsheet_id).worksheet("TRACKER")
@@ -69,7 +78,7 @@ else:
     # LIMPIEZA DE COLUMNAS
     df.columns = df.columns.str.strip()
 
-    # --- DETECTIVES DE COLUMNAS (CORREGIDO) ---
+    # --- DETECTIVES DE COLUMNAS ---
     col_area = buscar_columna(df, "Area Principal")
     if not col_area: col_area = buscar_columna(df, "Area")
     
@@ -77,10 +86,7 @@ else:
     col_avance = buscar_columna(df, "Avance")
     col_estado = buscar_columna(df, "Estado") 
     col_estado_recursos = buscar_columna(df, "Estado Recursos")
-    
-    # AQUÍ ESTABA EL ERROR: Ahora buscamos la frase completa "Recurso Principal"
-    col_recurso_principal = buscar_columna(df, "Recurso Principal") 
-    
+    col_recurso_principal = buscar_columna(df, "Recurso Principal")
     col_recurso_adicional = buscar_columna(df, "Adicional")
     col_dias = buscar_columna(df, "Dias")
 
