@@ -29,15 +29,17 @@ def cargar_datos():
         # LÓGICA INTELIGENTE DE CREDENCIALES
         # 1. Intenta buscar en la "Caja Fuerte" de la nube (Streamlit Secrets)
         if "google_credentials" in st.secrets:
+            # Nota los espacios a la izquierda aquí abajo 👇
             key_dict = dict(st.secrets["google_credentials"])
-        creds = Credentials.from_service_account_info(key_dict, scopes=scope)
+            creds = Credentials.from_service_account_info(key_dict, scopes=scope)
         # 2. Si no, busca el archivo en tu compu (para cuando trabajás local)
         else:
+            # Aquí también hay espacios 👇
             creds = Credentials.from_service_account_file("credenciales.json", scopes=scope)
             
         client = gspread.authorize(creds)
         
-        # --- ¡PEGÁ TU ID DE GOOGLE SHEETS AQUÍ ABAJO! ---
+        # --- ¡CHEQUEÁ QUE TU ID ESTÉ ACÁ! ---
         spreadsheet_id = "1nfXLWBLfjIXznMIjlojpaAKD3bTRrThEvkjihCjwbUk" 
         
         sheet = client.open_by_key(spreadsheet_id).worksheet("TRACKER")
@@ -371,6 +373,7 @@ else:
         if st.button("⚡ Generar Reclamo de Recursos"):
             reporte = generar_asistente(criticos, col_estado, col_estado_recursos, col_recurso_principal)
             st.text_area("Copia este texto:", reporte, height=200)
+
 
 
 
