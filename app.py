@@ -38,7 +38,7 @@ def cargar_datos():
         client = gspread.authorize(creds)
         
         # --- ¡PEGÁ TU ID DE GOOGLE SHEETS AQUÍ ABAJO! ---
-        spreadsheet_id = "PEGÁ_TU_ID_AQUÍ" 
+        spreadsheet_id = "1nfXLWBLfjIXznMIjlojpaAKD3bTRrThEvkjihCjwbUk" 
         
         sheet = client.open_by_key(spreadsheet_id).worksheet("TRACKER")
         data = sheet.get_all_records()
@@ -371,5 +371,6 @@ else:
         if st.button("⚡ Generar Reclamo de Recursos"):
             reporte = generar_asistente(criticos, col_estado, col_estado_recursos, col_recurso_principal)
             st.text_area("Copia este texto:", reporte, height=200)
+
 
 
