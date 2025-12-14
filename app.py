@@ -29,7 +29,6 @@ def cargar_datos():
         # LÓGICA INTELIGENTE DE CREDENCIALES
         if "google_credentials" in st.secrets:
             # Opción 1: Nube (Streamlit Cloud)
-            # Usamos dict() porque en el paso anterior configuramos el formato TOML nativo
             key_dict = dict(st.secrets["google_credentials"])
             creds = Credentials.from_service_account_info(key_dict, scopes=scope)
         else:
@@ -56,15 +55,18 @@ def buscar_columna(df, palabras_clave):
 
 # --- LÓGICA DE SECRETARIA VIRTUAL ---
 def generar_asistente(df_criticos, col_estado, col_recursos, col_principal):
-    st.info("🤖 **Asistente Virtual:** Analizando necesidades de hardware...")
+    st.info("🤖 **Asistente Virtual:** Generando reporte de pendientes (Faltantes y A Gestionar)...")
     time.sleep(1.5)
-    texto = "REPORTE DE RECURSOS:\n\n"
+    texto = "REPORTE DE RECURSOS PENDIENTES:\n\n"
     
     for i, fila in df_criticos.iterrows():
-        texto += f"📌 PROYECTO: {fila.get('Nombre del Proyecto', 'Sin nombre')}\n"
-        texto += f"DOCENTE: {fila.get('Docentes Responsables', '')}\n"
+        nombre = fila.get('Nombre del Proyecto', 'Sin nombre')
+        estado_rec = fila.get(col_recursos, '')
         recurso = fila.get(col_principal, 'recurso no especificado')
-        texto += f"ALERTA: Estado '{fila.get(col_recursos, '')}'. Se requiere gestionar: {recurso}.\n"
+        
+        texto += f"📌 PROYECTO: {nombre}\n"
+        texto += f"⚠️ SITUACIÓN: {estado_rec.upper()}\n"
+        texto += f"🔧 DETALLE: Se requiere gestionar/adquirir: {recurso}.\n"
         texto += "-"*40 + "\n"
     return texto
 
@@ -103,15 +105,20 @@ else:
         if filtro_area:
             df = df[df[col_area].isin(filtro_area)]
 
-    # 2. KPIS
+    # 2. KPIS (MÉTRICAS)
     total = len(df)
+    
+    # --- CAMBIO 1: AHORA INCLUIMOS "A gestionar" ---
     criticos = pd.DataFrame()
     if col_estado_recursos:
-        criticos = df[df[col_estado_recursos] == "Faltante"]
+        # Filtramos los que dicen "Faltante" O "A gestionar"
+        criticos = df[df[col_estado_recursos].isin(["Faltante", "A gestionar"])]
     
     col1, col2, col3 = st.columns(3)
     col1.metric("📦 Proyectos Activos", total)
-    col2.metric("🛑 Faltan Recursos", len(criticos), delta_color="inverse")
+    
+    # Cambiamos el título del KPI para que sea más abarcativo
+    col2.metric("⚠️ Recursos Pendientes", len(criticos), delta_color="inverse")
     
     if total > 0 and col_avance:
         progreso = int(df[col_avance].mean())
@@ -151,15 +158,15 @@ else:
                         st.write("⏳ Vencimiento: Sin fecha")
 
             with c2:
-                # Semáforo de Recursos
+                # --- CAMBIO 2: ETIQUETAS MÁS CLARAS ---
                 if col_estado_recursos:
                     est_rec = row[col_estado_recursos]
                     if est_rec == "Faltante":
-                        st.error(f"🛑 Estado: {est_rec}")
+                        st.error(f"🛑 Estado de Recursos: {est_rec}")
                     elif est_rec == "A gestionar":
-                        st.warning(f"✋ Estado: {est_rec}")
+                        st.warning(f"✋ Estado de Recursos: {est_rec}")
                     else:
-                        st.success(f"✅ Estado: {est_rec}")
+                        st.success(f"✅ Estado de Recursos: {est_rec}")
                 
                 # Recursos
                 principal = row.get(col_recurso_principal, '-')
@@ -182,7 +189,7 @@ else:
 
             st.markdown("---")
 
-    # 4. ZONA DE ACCIÓN
+    # 4. ZONA DE ACCIÓN (AHORA INCLUYE LOS "A GESTIONAR")
     if len(criticos) > 0:
         if st.button("⚡ Generar Reclamo de Recursos"):
             reporte = generar_asistente(criticos, col_estado, col_estado_recursos, col_recurso_principal)
