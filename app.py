@@ -6,7 +6,7 @@ import json
 from google.oauth2.service_account import Credentials
 
 # --- CONFIGURACIÓN DE PÁGINA ---
-st.set_page_config(page_title="Monitor de Proyectos", page_icon="🚀", layout="wide")
+st.set_page_config(page_title="Project Tracker", page_icon="🚀", layout="wide")
 
 # Estilos CSS
 st.markdown("""
@@ -194,3 +194,4 @@ else:
         if st.button("⚡ Generar Reclamo de Recursos"):
             reporte = generar_asistente(criticos, col_estado, col_estado_recursos, col_recurso_principal)
             st.text_area("Copia este texto:", reporte, height=200)
+
