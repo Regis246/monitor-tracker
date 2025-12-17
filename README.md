@@ -1,6 +1,6 @@
 # 🚀 Monitor de Proyectos Educativos
 
-Aplicación interactiva desarrollada en Python y Streamlit para el seguimiento de insumos y avance de proyectos escolares.
+Aplicación interactiva desarrollada con la asistencia de Google Gemini -IAG-en Python y Streamlit para el seguimiento de insumos y avance de proyectos escolares.
 
 ## Funcionalidades
 * Conexión en tiempo real con Google Sheets.
