@@ -17,7 +17,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🚀 Tablero de Control: Misión Educativa")
+st.title("🚀 Tablero de Control Escuela #DE#: Misión Educativa")
 st.markdown("---")
 
 # --- CONEXIÓN HÍBRIDA (NUBE / LOCAL) ---
@@ -194,4 +194,5 @@ else:
         if st.button("⚡ Generar Reclamo de Recursos"):
             reporte = generar_asistente(criticos, col_estado, col_estado_recursos, col_recurso_principal)
             st.text_area("Copia este texto:", reporte, height=200)
+
 
