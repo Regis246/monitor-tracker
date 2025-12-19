@@ -53,21 +53,49 @@ def buscar_columna(df, palabras_clave):
             return col
     return None
 
-# --- LÓGICA DE SECRETARIA VIRTUAL ---
-def generar_asistente(df_criticos, col_estado, col_recursos, col_principal):
-    st.info("🤖 **Asistente Virtual:** Generando reporte de pendientes (Faltantes y A Gestionar)...")
+# --- LÓGICA DE SECRETARIA VIRTUAL (VERSIÓN HÍBRIDA) ---
+def generar_asistente(df, col_recursos, col_principal, col_avance, col_dias):
+    st.info("🤖 **Asistente Virtual:** Analizando recursos y redacción de correos...")
     time.sleep(1.5)
-    texto = "REPORTE DE RECURSOS PENDIENTES:\n\n"
+    texto = "--- REPORTE DE GESTIÓN ---\n\n"
     
-    for i, fila in df_criticos.iterrows():
-        nombre = fila.get('Nombre del Proyecto', 'Sin nombre')
-        estado_rec = fila.get(col_recursos, '')
-        recurso = fila.get(col_principal, 'recurso no especificado')
+    # 1. LISTADO DE RECURSOS PENDIENTES
+    texto += "🚨 RECURSOS CRÍTICOS:\n"
+    # Filtramos acá mismo los que tienen problemas
+    df_recursos = df[df[col_recursos].isin(["Faltante", "A gestionar"])]
+    
+    if len(df_recursos) > 0:
+        for i, fila in df_recursos.iterrows():
+            nombre = fila.get('Nombre del Proyecto', 'Sin nombre')
+            estado = fila.get(col_recursos, '')
+            item = fila.get(col_principal, '')
+            texto += f"- {nombre}: {estado} ({item})\n"
+    else:
+        texto += "No hay recursos pendientes.\n"
+    
+    texto += "\n" + "="*40 + "\n\n"
+
+    # 2. GENERADOR DE EMAILS (Proyectos con avance bajo y poco tiempo)
+    texto += "📧 BORRADORES DE CORREO (Proyectos < 50% avance):\n\n"
+    
+    # Filtramos proyectos con menos de 50% de avance
+    if col_avance and col_dias:
+        df_atrasados = df[df[col_avance] < 50]
         
-        texto += f"📌 PROYECTO: {nombre}\n"
-        texto += f"⚠️ SITUACIÓN: {estado_rec.upper()}\n"
-        texto += f"🔧 DETALLE: Se requiere gestionar/adquirir: {recurso}.\n"
-        texto += "-"*40 + "\n"
+        for i, fila in df_atrasados.iterrows():
+            profe = fila.get('Docentes Responsables', 'Profe')
+            proyecto = fila.get('Nombre del Proyecto', 'Proyecto')
+            avance = fila.get(col_avance, 0)
+            dias = fila.get(col_dias, '?')
+            
+            texto += f"PARA: {profe}\n"
+            texto += f"ASUNTO: Seguimiento - {proyecto}\n"
+            texto += f"Hola {profe},\n"
+            texto += f"Te escribo porque notamos que el avance registrado es del {avance}% "
+            texto += f"y restan {dias} días para la entrega.\n"
+            texto += "¿Necesitás ayuda con algún bloqueo? Avísanos.\n"
+            texto += "-"*20 + "\n\n"
+            
     return texto
 
 # --- INTERFAZ PRINCIPAL ---
@@ -189,10 +217,11 @@ else:
 
             st.markdown("---")
 
-    # 4. ZONA DE ACCIÓN (AHORA INCLUYE LOS "A GESTIONAR")
-    if len(criticos) > 0:
-        if st.button("⚡ Generar Reclamo de Recursos"):
-            reporte = generar_asistente(criticos, col_estado, col_estado_recursos, col_recurso_principal)
-            st.text_area("Copia este texto:", reporte, height=200)
-
-
+  # 4. ZONA DE ACCIÓN
+    st.subheader("⚡ Acciones Rápidas")
+    
+    # Botón único que genera todo el reporte
+    if st.button("Generar Reporte de Asistente Virtual"):
+        # Llamamos a la nueva función pasándole TODAS las columnas necesarias
+        reporte = generar_asistente(df, col_estado_recursos, col_recurso_principal, col_avance, col_dias)
+        st.text_area("Copiar Reporte y Mails:", reporte, height=300)
