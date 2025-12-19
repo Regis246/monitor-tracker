@@ -5,4 +5,4 @@ Aplicación interactiva desarrollada con la asistencia de Google Gemini -IAG-en 
 ## Funcionalidades
 * Conexión en tiempo real con Google Sheets.
 * Semáforos de alerta para recursos faltantes o en gestión.
-* Generación automática de reportes de reclamo.
+* Generación automática de plantillas de mensajes de seguimiento y/o reclamo.
