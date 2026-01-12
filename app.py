@@ -21,7 +21,7 @@ st.title("🚀 Tablero de Control Escuela #DE#: Misión Educativa")
 st.markdown("---")
 
 # --- CONEXIÓN HÍBRIDA (NUBE / LOCAL) ---
-@st.cache_data
+@st.cache_data(ttl=60) # Agregué ttl para que refresque cada tanto
 def cargar_datos():
     try:
         scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
@@ -37,33 +37,32 @@ def cargar_datos():
             
         client = gspread.authorize(creds)
         
-        # ⚠️ IMPORTANTE: REEMPLAZÁ ESTO CON TU ID ANTES DE GUARDAR ⚠️
+        # ID DE LA PLANILLA
         spreadsheet_id = "1nfXLWBLfjIXznMIjlojpaAKD3bTRrThEvkjihCjwbUk" 
         
-        # ... código anterior ...
-    sheet = client.open_by_key(spreadsheet_id).worksheet("TRACKER")
-    
-    # --- CAMBIO INICIO: Versión a prueba de errores ---
-    # 1. Traemos todo crudo (lista de listas), esto NO falla por encabezados
-    all_values = sheet.get_all_values()
-    
-    # 2. Si la hoja está vacía, devolvemos un DataFrame vacío para no romper nada
-    if not all_values:
-        return pd.DataFrame()
+        # Conexión a la hoja
+        sheet = client.open_by_key(spreadsheet_id).worksheet("TRACKER")
+        
+        # --- BLOQUE A PRUEBA DE ERRORES ---
+        # 1. Traemos todo crudo
+        all_values = sheet.get_all_values()
+        
+        # 2. Si la hoja está vacía, devolvemos un DataFrame vacío
+        if not all_values:
+            return pd.DataFrame()
 
-    # 3. Separamos encabezados (fila 1) de los datos (resto)
-    headers = all_values[0]
-    rows = all_values[1:]
+        # 3. Separamos encabezados (fila 1) de los datos (resto)
+        headers = all_values[0]
+        rows = all_values[1:]
 
-    # 4. Creamos el DataFrame
-    df = pd.DataFrame(rows, columns=headers)
+        # 4. Creamos el DataFrame
+        df = pd.DataFrame(rows, columns=headers)
 
-    # 5. EL FILTRO MÁGICO: Eliminamos cualquier columna que no tenga nombre
-    # Esto borra las columnas "fantasma" que causaban el error
-    df = df.loc[:, df.columns != '']
+        # 5. EL FILTRO MÁGICO: Eliminamos cualquier columna que no tenga nombre
+        df = df.loc[:, df.columns != '']
 
-    return df
-    # --- CAMBIO FIN ---
+        return df
+        # ----------------------------------
 
     except Exception as e:
         return str(e)
@@ -102,7 +101,8 @@ def generar_asistente(df, col_recursos, col_principal, col_avance, col_dias):
     
     # Filtramos proyectos con menos de 50% de avance
     if col_avance and col_dias:
-        df_atrasados = df[df[col_avance] < 50]
+        # Aseguramos que sea numérico antes de comparar
+        df_atrasados = df[pd.to_numeric(df[col_avance], errors='coerce').fillna(0) < 50]
         
         for i, fila in df_atrasados.iterrows():
             profe = fila.get('Docentes Responsables', 'Profe')
@@ -239,7 +239,7 @@ else:
 
             st.markdown("---")
 
-  # 4. ZONA DE ACCIÓN
+    # 4. ZONA DE ACCIÓN
     st.subheader("⚡ Acciones Rápidas")
     
     # Botón único que genera todo el reporte
@@ -247,5 +247,3 @@ else:
         # Llamamos a la nueva función pasándole TODAS las columnas necesarias
         reporte = generar_asistente(df, col_estado_recursos, col_recurso_principal, col_avance, col_dias)
         st.text_area("Copiar Reporte y Mails:", reporte, height=300)
-
-
