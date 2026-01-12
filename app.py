@@ -60,9 +60,13 @@ def cargar_datos():
 
         # 5. EL FILTRO MÁGICO: Eliminamos cualquier columna que no tenga nombre
         df = df.loc[:, df.columns != '']
+        
+        # --- NUEVO: FILTRO DE FILAS FANTASMA ---
+        # Le decimos: "Si la primera columna (Nombre del Proyecto) está vacía, borra esa fila".
+        df = df[df.iloc[:, 0].astype(str).str.strip() != ""]
+        # ---------------------------------------
 
         return df
-        # ----------------------------------
 
     except Exception as e:
         return str(e)
@@ -247,3 +251,4 @@ else:
         # Llamamos a la nueva función pasándole TODAS las columnas necesarias
         reporte = generar_asistente(df, col_estado_recursos, col_recurso_principal, col_avance, col_dias)
         st.text_area("Copiar Reporte y Mails:", reporte, height=300)
+
