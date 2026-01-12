@@ -225,3 +225,4 @@ else:
         # Llamamos a la nueva función pasándole TODAS las columnas necesarias
         reporte = generar_asistente(df, col_estado_recursos, col_recurso_principal, col_avance, col_dias)
         st.text_area("Copiar Reporte y Mails:", reporte, height=300)
+
