@@ -40,9 +40,31 @@ def cargar_datos():
         # ⚠️ IMPORTANTE: REEMPLAZÁ ESTO CON TU ID ANTES DE GUARDAR ⚠️
         spreadsheet_id = "1nfXLWBLfjIXznMIjlojpaAKD3bTRrThEvkjihCjwbUk" 
         
-        sheet = client.open_by_key(spreadsheet_id).worksheet("TRACKER")
-        data = sheet.get_all_records()
-        return pd.DataFrame(data)
+        # ... código anterior ...
+    sheet = client.open_by_key(spreadsheet_id).worksheet("TRACKER")
+    
+    # --- CAMBIO INICIO: Versión a prueba de errores ---
+    # 1. Traemos todo crudo (lista de listas), esto NO falla por encabezados
+    all_values = sheet.get_all_values()
+    
+    # 2. Si la hoja está vacía, devolvemos un DataFrame vacío para no romper nada
+    if not all_values:
+        return pd.DataFrame()
+
+    # 3. Separamos encabezados (fila 1) de los datos (resto)
+    headers = all_values[0]
+    rows = all_values[1:]
+
+    # 4. Creamos el DataFrame
+    df = pd.DataFrame(rows, columns=headers)
+
+    # 5. EL FILTRO MÁGICO: Eliminamos cualquier columna que no tenga nombre
+    # Esto borra las columnas "fantasma" que causaban el error
+    df = df.loc[:, df.columns != '']
+
+    return df
+    # --- CAMBIO FIN ---
+
     except Exception as e:
         return str(e)
 
@@ -225,4 +247,5 @@ else:
         # Llamamos a la nueva función pasándole TODAS las columnas necesarias
         reporte = generar_asistente(df, col_estado_recursos, col_recurso_principal, col_avance, col_dias)
         st.text_area("Copiar Reporte y Mails:", reporte, height=300)
+
 
