@@ -44,12 +44,12 @@ def cargar_datos():
     sheet = client.open_by_key(spreadsheet_id).worksheet("TRACKER")
     
     # --- CAMBIO INICIO: Versión a prueba de errores ---
-    # 1. Traemos todo crudo (lista de listas), esto NO falla por encabezados
+    # 1. Traemos todo #1 crudo (lista de listas), esto NO falla por encabezados
     all_values = sheet.get_all_values()
     
     # 2. Si la hoja está vacía, devolvemos un DataFrame vacío para no romper nada
     if not all_values:
-        return pd.DataFrame()
+            return pd.DataFrame()
 
     # 3. Separamos encabezados (fila 1) de los datos (resto)
     headers = all_values[0]
